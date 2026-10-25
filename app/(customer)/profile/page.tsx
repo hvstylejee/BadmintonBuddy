@@ -10,8 +10,8 @@ export default function CustomerProfilePage() {
           </h1>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="rounded-lg bg-card p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl bg-card p-6">
             <h3 className="text-xl font-medium mb-2">Account Details</h3>
             <p className="text-muted-foreground">
               Email: customer@badmintonbuddy.com
@@ -21,14 +21,14 @@ export default function CustomerProfilePage() {
             </p>
           </div>
 
-          <div className="rounded-lg bg-card p-6">
+          <div className="rounded-2xl bg-card p-6">
             <h3 className="text-xl font-medium mb-2">Favorites</h3>
             <p className="text-muted-foreground">
               No favorites yet
             </p>
           </div>
 
-          <div className="rounded-lg bg-card p-6">
+          <div className="rounded-2xl bg-card p-6">
             <h3 className="text-xl font-medium mb-2">Settings</h3>
             <p className="text-muted-foreground">
               Notification preferences, privacy settings, etc.

@@ -1,3 +1,63 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom CSS variables for the app */
+:root {
+  --bg: #0a0a0f;
+  --bg-subtle: #12121a;
+  --fg: #e8e8f0;
+  --muted: #6b6b80;
+  --accent: #ff4d4d;
+  --accent-soft: #ff4d4d3d;
+  --card: #16161f;
+  --border: #2a2a3a;
+  --success: #38bdf8;
+  --destructive: #ef4444;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-family: 'Inter', 'System UI', sans-serif;
+  }
+  
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--bg-subtle);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+}
