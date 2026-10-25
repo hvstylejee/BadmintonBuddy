@@ -1,0 +1,598 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  CUSTOMER
+  VENUE_STAFF
+  VENUE_MANAGER
+  VENUE_OWNER
+  PLATFORM_ADMIN
+  SUPER_ADMIN
+}
+
+enum VenueStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum CourtSurface {
+  HARD
+  CLAY
+  GRASS
+  SYNTHETIC
+  WOODEN
+}
+
+enum BookingStatus {
+  HOLD
+  PAYMENT_PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  PAYMENT_FAILED
+  EXPIRED
+  RESCHEDULED
+}
+
+enum HoldStatus {
+  ACTIVE
+  CONVERTED
+  EXPIRED
+  RELEASED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUND_PENDING
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI_ONLINE
+  UPI_OFFLINE
+  CARD
+  WALLET
+  OTHER
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  BOOKING_RESCHEDULED
+  PAYMENT_FAILED
+  HOLD_EXPIRED
+  REFUND_INITIATED
+  REFUND_COMPLETED
+  BOOKING_REMINDER
+  REVIEW_REQUEST
+}
+
+// ============================================================
+// CORE MODELS
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  phone         String?   @unique
+  passwordHash  String?
+  role          UserRole  @default(CUSTOMER)
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bookings          Booking[]
+  reviews           Review[]
+  auditLogs         AuditLog[]
+  venueMemberships  VenueMember[]
+  notifications     Notification[]
+  payments          Payment[]
+  couponRedemptions CouponRedemption[]
+  favorites         Favorite[]
+}
+
+model Venue {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String?
+  address     String
+  city        String
+  locality    String?
+  latitude    Float?
+  longitude   Float?
+  status      VenueStatus @default(DRAFT)
+  timezone    String      @default("Asia/Kolkata")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  courts               Court[]
+  operatingHours       OperatingHour[]
+  exceptions           OperatingHourException[]
+  pricingRules         PricingRule[]
+  blockedSlots         BlockedSlot[]
+  bookings             Booking[]
+  images               VenueImage[]
+  coupons              Coupon[]
+  venueMembers         VenueMember[]
+  cancellationPolicies CancellationPolicy[]
+  reschedulePolicies   ReschedulePolicy[]
+  notifications        Notification[]
+  favorites            Favorite[]
+  holidays             Holiday[]
+}
+
+model Sport {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  courts       Court[]
+  pricingRules PricingRule[]
+}
+
+model Court {
+  id         String        @id @default(cuid())
+  venueId    String
+  sportId    String?
+  name       String
+  capacity   Int           @default(4)
+  active     Boolean       @default(true)
+  surface    CourtSurface?
+  maxPlayers Int           @default(4)
+
+  venue        Venue         @relation(fields: [venueId], references: [id])
+  sport        Sport?        @relation(fields: [sportId], references: [id])
+  bookings     BookingItem[]
+  holds        BookingHold[]
+  blockedSlots BlockedSlot[]
+  pricingRules PricingRule[]
+
+  @@index([venueId, active])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  bookingCode    String        @unique
+  userId         String
+  venueId        String
+  status         BookingStatus
+  subtotal       Decimal
+  discountAmount Decimal       @default(0)
+  platformFee    Decimal       @default(0)
+  taxAmount      Decimal       @default(0)
+  totalAmount    Decimal
+  currency       String        @default("INR")
+
+  priceSnapshot  Json
+  policySnapshot Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id])
+  venue             Venue              @relation(fields: [venueId], references: [id])
+  items             BookingItem[]
+  payments          Payment[]
+  reviews           Review[]
+  refunds           Refund[]
+  couponRedemptions CouponRedemption[]
+  notifications     Notification[]
+
+  @@index([venueId, status])
+}
+
+model BookingItem {
+  id         String   @id @default(cuid())
+  bookingId  String
+  courtId    String
+  startAt    DateTime
+  endAt      DateTime
+  unitPrice  Decimal
+  totalPrice Decimal
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  court   Court   @relation(fields: [courtId], references: [id])
+
+  @@index([courtId, startAt, endAt])
+  @@index([bookingId])
+}
+
+model BookingHold {
+  id        String     @id @default(cuid())
+  courtId   String
+  bookingId String?
+  startAt   DateTime
+  endAt     DateTime
+  expiresAt DateTime
+  status    HoldStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+
+  court Court @relation(fields: [courtId], references: [id])
+
+  @@index([courtId, startAt, endAt])
+  @@index([expiresAt])
+}
+
+// ============================================================
+// VENUE MANAGEMENT MODELS
+// ============================================================
+
+model OperatingHour {
+  id          String   @id @default(cuid())
+  venueId     String
+  dayOfWeek   Int // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  openingTime String // HH:MM format
+  closingTime String // HH:MM format
+  breakStart  String? // HH:MM format, optional
+  breakEnd    String? // HH:MM format, optional
+  isClosed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  venue Venue @relation(fields: [venueId], references: [id])
+
+  @@index([venueId, dayOfWeek])
+}
+
+model OperatingHourException {
+  id        String   @id @default(cuid())
+  venueId   String
+  date      DateTime
+  isClosed  Boolean
+  reason    String?
+  createdAt DateTime @default(now())
+
+  venue Venue @relation(fields: [venueId], references: [id])
+}
+
+model PricingRule {
+  id           String   @id @default(cuid())
+  venueId      String
+  courtId      String? // Nullable = venue-wide rule
+  sportId      String? // Nullable = sport-specific rule
+  name         String
+  description  String?
+  startTime    String? // HH:MM format
+  endTime      String? // HH:MM format
+  dayOfWeek    Int? // 0=Sunday, 1=Monday, ..., 6=Saturday; null = every day
+  priority     Int      @default(0)
+  pricePerHour Decimal
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  venue Venue  @relation(fields: [venueId], references: [id])
+  court Court? @relation(fields: [courtId], references: [id])
+  sport Sport? @relation(fields: [sportId], references: [id])
+}
+
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  venueId   String
+  courtId   String? // Nullable = venue-wide block
+  startAt   DateTime
+  endAt     DateTime
+  reason    String
+  createdBy String // User ID who created the block
+  createdAt DateTime @default(now())
+
+  venue Venue  @relation(fields: [venueId], references: [id])
+  court Court? @relation(fields: [courtId], references: [id])
+
+  @@index([venueId, startAt, endAt])
+  @@index([courtId, startAt, endAt])
+}
+
+// ============================================================
+// VENUE MEMBERSHIP & AUTH
+// ============================================================
+
+model VenueMember {
+  id       String   @id @default(cuid())
+  venueId  String
+  userId   String
+  role     String // OWNER, MANAGER, STAFF
+  joinedAt DateTime @default(now())
+  isActive Boolean  @default(true)
+
+  venue Venue @relation(fields: [venueId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([venueId, userId])
+}
+
+// ============================================================
+// PAYMENT MODELS
+// ============================================================
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String? // Nullable for manual/cash bookings
+  userId            String
+  amount            Decimal
+  currency          String        @default("INR")
+  provider          String // e.g., "razorpay"
+  providerOrderId   String
+  providerPaymentId String?
+  providerRefundId  String?
+  status            PaymentStatus
+  gatewayResponse   Json
+  attemptedAt       DateTime      @default(now())
+  completedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  booking         Booking?         @relation(fields: [bookingId], references: [id])
+  user            User             @relation(fields: [userId], references: [id])
+  paymentAttempts PaymentAttempt[]
+  refunds         Refund[]
+}
+
+model PaymentAttempt {
+  id            String   @id @default(cuid())
+  paymentId     String
+  attemptNumber Int
+  status        String
+  errorCode     String?
+  errorMessage  String?
+  occurredAt    DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+}
+
+model Refund {
+  id               String    @id @default(cuid())
+  paymentId        String
+  bookingId        String
+  amount           Decimal
+  currency         String    @default("INR")
+  providerRefundId String?
+  status           String
+  reason           String?
+  initiatedAt      DateTime  @default(now())
+  completedAt      DateTime?
+  gatewayResponse  Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+// ============================================================
+// COUPON & PROMOTION MODELS
+// ============================================================
+
+model Coupon {
+  id                   String     @id @default(cuid())
+  code                 String     @unique
+  type                 CouponType
+  amount               Decimal
+  minimumBookingAmount Decimal
+  maximumDiscount      Decimal
+  startDate            DateTime
+  endDate              DateTime
+  usageLimit           Int?
+  perUserLimit         Int?
+  applicableVenues     String? // Comma-separated venue IDs or "all"
+  applicableSports     String? // Comma-separated sport IDs or "all"
+  isActive             Boolean    @default(true)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  redemptions CouponRedemption[]
+  venue       Venue?             @relation(fields: [venueId], references: [id])
+  venueId     String?
+
+  @@index([code])
+}
+
+model CouponRedemption {
+  id              String   @id @default(cuid())
+  couponId        String
+  bookingId       String
+  userId          String
+  discountApplied Decimal
+  appliedAt       DateTime @default(now())
+
+  coupon  Coupon  @relation(fields: [couponId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+// ============================================================
+// CANCELLATION & RESCHEDULING MODELS
+// ============================================================
+
+model CancellationPolicy {
+  id          String   @id @default(cuid())
+  venueId     String
+  name        String
+  description String?
+  rules       Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  venue                   Venue                    @relation(fields: [venueId], references: [id])
+  cancellationPolicyRules CancellationPolicyRule[]
+}
+
+model CancellationPolicyRule {
+  id                  String  @id @default(cuid())
+  policyId            String
+  minHoursBeforeStart Int
+  refundPercentage    Int
+  isActive            Boolean @default(true)
+
+  policy CancellationPolicy @relation(fields: [policyId], references: [id])
+}
+
+model ReschedulePolicy {
+  id                     String   @id @default(cuid())
+  venueId                String
+  name                   String
+  description            String?
+  allowed                Boolean  @default(true)
+  maxReschedules         Int      @default(2)
+  minHoursBeforeStart    Int
+  sameVenueOnly          Boolean  @default(true)
+  sameDuration           Boolean  @default(true)
+  sameSport              Boolean  @default(true)
+  priceDifferenceAllowed Boolean  @default(true)
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  venue Venue @relation(fields: [venueId], references: [id])
+}
+
+// ============================================================
+// REVIEW MODEL
+// ============================================================
+
+model Review {
+  id        String       @id @default(cuid())
+  bookingId String       @unique
+  userId    String
+  rating    Int // 1-5
+  title     String?
+  comment   String?
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+// ============================================================
+// NOTIFICATION MODEL
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  venueId   String?
+  bookingId String?
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  venue   Venue?   @relation(fields: [venueId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id])
+}
+
+// ============================================================
+// AUDIT LOG MODEL
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+  metadata   Json?
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([timestamp])
+  @@index([entityType])
+  @@index([entityId])
+}
+
+// ============================================================
+// FAVORITES MODEL
+// ============================================================
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  venueId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  venue Venue @relation(fields: [venueId], references: [id])
+
+  @@unique([userId, venueId])
+}
+
+// ============================================================
+// VENUE SETTINGS
+// ============================================================
+
+model Holiday {
+  id        String   @id @default(cuid())
+  venueId   String
+  date      DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+
+  venue Venue @relation(fields: [venueId], references: [id])
+
+  @@index([venueId, date])
+}
+
+// ============================================================
+// VENUE IMAGES
+// ============================================================
+
+model VenueImage {
+  id        String   @id @default(cuid())
+  venueId   String
+  url       String
+  altText   String?
+  isPrimary Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  venue Venue @relation(fields: [venueId], references: [id])
+}
