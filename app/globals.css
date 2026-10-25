@@ -2,62 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS variables for the app */
 :root {
-  --bg: #0a0a0f;
-  --bg-subtle: #12121a;
-  --fg: #e8e8f0;
-  --muted: #6b6b80;
-  --accent: #ff4d4d;
-  --accent-soft: #ff4d4d3d;
-  --card: #16161f;
-  --border: #2a2a3a;
-  --success: #38bdf8;
-  --destructive: #ef4444;
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 14%;
+  --card-foreground: 210 40% 98%;
+  --border: 217 19% 25%;
+  --muted: 217 19% 19%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 84 81% 44%;
+  --accent-foreground: 222 47% 11%;
+  --primary: 84 81% 44%;
+  --primary-foreground: 222 47% 11%;
 }
 
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
-  
-  html {
-    font-family: 'Inter', 'System UI', sans-serif;
-  }
-  
-  body {
-    background-color: var(--bg);
-    color: var(--fg);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--fg);
-    font-weight: 700;
-  }
-  
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-  
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--bg-subtle);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--muted);
-  }
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body { @apply min-h-screen bg-background text-foreground antialiased; font-family: Arial, Helvetica, sans-serif; }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid #bef264; outline-offset: 3px; }
 }

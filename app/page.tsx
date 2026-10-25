@@ -1,78 +1,37 @@
+"use client";
+
 import Link from "next/link";
+import { FormEvent, useState } from "react";
+import { FiArrowRight, FiCalendar, FiCheckCircle, FiChevronDown, FiClock, FiMapPin, FiSearch, FiShield, FiStar, FiUsers } from "react-icons/fi";
+
+const dates = [
+  { day: "TODAY", date: "25", month: "OCT" }, { day: "SUN", date: "26", month: "OCT" },
+  { day: "MON", date: "27", month: "OCT" }, { day: "TUE", date: "28", month: "OCT" },
+];
+const venues = [
+  { name: "Smash Point Arena", area: "Indiranagar, Bengaluru", rating: "4.8", reviews: "214", distance: "1.2 km", price: "₹350", courts: "6 indoor courts", tone: "from-violet-950 via-violet-800 to-teal-600" },
+  { name: "The Rally Club", area: "Koramangala, Bengaluru", rating: "4.7", reviews: "168", distance: "2.4 km", price: "₹300", courts: "4 premium courts", tone: "from-cyan-950 via-sky-700 to-amber-400" },
+  { name: "Birdie Sports Hub", area: "HSR Layout, Bengaluru", rating: "4.6", reviews: "91", distance: "3.1 km", price: "₹280", courts: "5 indoor courts", tone: "from-emerald-950 via-emerald-700 to-lime-400" },
+];
 
 export default function HomePage() {
-  return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="max-w-7xl mx-auto py-12 px-4">
-        <header className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight">
-              BadmintonBuddy
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              Find and book badminton courts near you
-            </p>
-          </div>
-          <div className="hidden sm:block sm:mt-0 sm:mr-6">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-soft text-accent text-sm">
-              🏸
-            </span>
-          </div>
-        </header>
-
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Link
-            href="/venues"
-            className="group rounded-2xl overflow-hidden bg-card border border-border hover:translate-y-1 hover:shadow-xl transition-all duration-300 group-hover:shadow-accent/30"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <h3 className="text-xl font-medium mb-2">Discover Venues</h3>
-              <p className="text-muted-foreground flex-1">
-                Find badminton courts in your area
-              </p>
-            </div>
-            <div className="mt-4 pt-4 border-t border-border">
-              <svg className="w-6 h-6 mt-auto" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2zm7 4h2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H21v-2h2V9a3 3 0 0 0-3-3h-2V5z" />
-              </svg>
-            </div>
-          </Link>
-
-          <Link
-            href="/venues"
-            className="group rounded-2xl overflow-hidden bg-card border border:hover hover:translate-y-1 hover:shadow-xl transition-all duration-300"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <h3 className="text-xl font-medium mb-2">Search</h3>
-              <p className="text-muted-foreground flex-1">
-                Location, date, time, and court
-              </p>
-            </div>
-            <div className="mt-4 pt-4 border-t border-border">
-              <svg className="w-6 h-6 mt-auto" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </div>
-          </Link>
-
-          <Link
-            href="/bookings/new"
-            className="group rounded-2xl overflow-hidden bg-card border border-border hover:translate-y-1 hover:shadow-xl transition-all duration-300"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <h3 className="text-xl font-medium mb-2">Book Now</h3>
-              <p className="text-muted-foreground flex-1">
-                Select court, time, and duration
-              </p>
-            </div>
-            <div className="mt-4 pt-4 border-t border-border">
-              <svg className="w-6 h-6 mt-auto" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5v14M5 12h14M17 2l2.29 6.86L12 19l-5-5 1.71-5.43L5 12l6.72-4.87L11 5l3.14 1.85L12 2l-6.29 3.85z" />
-              </svg>
-            </div>
-          </Link>
-        </section>
-      </div>
-    </main>
-  );
+  const [selectedDate, setSelectedDate] = useState(0);
+  const [location, setLocation] = useState("Bengaluru");
+  const search = (event: FormEvent) => { event.preventDefault(); window.location.assign(`/venues?location=${encodeURIComponent(location)}`); };
+  return <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+    <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
+      <Link href="/" className="flex items-center gap-2.5 font-bold tracking-tight"><span className="grid h-10 w-10 place-items-center rounded-xl bg-lime-300 text-lg text-slate-950 shadow-lg shadow-lime-300/20">🏸</span><span className="text-xl">Badminton<span className="text-lime-300">Buddy</span></span></Link>
+      <div className="hidden items-center gap-7 text-sm font-medium text-slate-300 md:flex"><a href="#venues" className="transition hover:text-white">Explore venues</a><a href="#how-it-works" className="transition hover:text-white">How it works</a><Link href="/bookings" className="transition hover:text-white">My bookings</Link></div>
+      <Link href="/profile" className="rounded-xl border border-white/15 px-4 py-2.5 text-sm font-semibold transition hover:border-lime-300 hover:text-lime-300">Sign in</Link>
+    </nav>
+    <section className="relative mx-auto max-w-7xl px-5 pb-20 pt-12 lg:px-8 lg:pb-28 lg:pt-20">
+      <div className="absolute -left-16 top-0 h-80 w-80 rounded-full bg-violet-600/25 blur-3xl" /><div className="absolute right-0 top-28 h-72 w-72 rounded-full bg-lime-400/15 blur-3xl" />
+      <div className="relative grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr]"><div><div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lime-200/20 bg-lime-300/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-lime-200"><span className="h-1.5 w-1.5 rounded-full bg-lime-300" /> Courts near you, ready to play</div><h1 className="max-w-2xl text-5xl font-black leading-[.98] tracking-[-.055em] sm:text-6xl lg:text-7xl">Your next great game starts <span className="text-lime-300">here.</span></h1><p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">Find brilliant badminton courts, see live availability and book your slot in moments. No calls. No uncertainty.</p><div className="mt-8 flex flex-wrap gap-5 text-sm text-slate-300"><span className="flex items-center gap-2"><FiCheckCircle className="text-lime-300" /> Instant confirmation</span><span className="flex items-center gap-2"><FiShield className="text-lime-300" /> Secure payments</span></div></div>
+        <div className="relative mx-auto w-full max-w-lg"><div className="absolute inset-4 rounded-[2rem] bg-lime-300/20 blur-2xl" /><div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-gradient-to-br from-teal-800 via-emerald-700 to-lime-500 p-5 shadow-2xl shadow-black/40"><div className="absolute inset-0 opacity-25 [background-image:linear-gradient(90deg,transparent_49.5%,white_50%,transparent_50.5%),linear-gradient(white_1px,transparent_1px)] [background-size:100%_100%,100%_31%]" /><div className="relative flex min-h-[350px] flex-col justify-between rounded-2xl border border-white/25 bg-slate-950/25 p-6 backdrop-blur-sm"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-lime-100">Tonight&apos;s match</p><p className="mt-1 text-2xl font-bold">Game on.</p></div><span className="rounded-full bg-lime-300 px-3 py-1 text-xs font-bold text-slate-950">AVAILABLE</span></div><div className="grid grid-cols-2 gap-3"><div className="rounded-xl bg-slate-950/50 p-3"><FiClock className="mb-2 text-lime-200" /><p className="text-xs text-slate-300">Next slot</p><p className="font-bold">7:30 PM</p></div><div className="rounded-xl bg-slate-950/50 p-3"><FiUsers className="mb-2 text-lime-200" /><p className="text-xs text-slate-300">Playing today</p><p className="font-bold">1,200+ players</p></div></div></div></div></div></div>
+      <form onSubmit={search} className="relative mt-12 grid gap-3 rounded-2xl border border-white/10 bg-white p-3 text-slate-900 shadow-2xl shadow-black/25 md:grid-cols-[1.4fr_1fr_1fr_auto]"><label className="flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"><FiMapPin className="shrink-0 text-emerald-600" /><span className="min-w-0"><span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Where</span><input aria-label="Location" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full bg-transparent font-semibold outline-none" /></span></label><div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"><FiCalendar className="text-emerald-600" /><span><span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">When</span><span className="font-semibold">Today, 25 Oct</span></span><FiChevronDown className="ml-auto text-slate-400" /></div><div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"><FiClock className="text-emerald-600" /><span><span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Time</span><span className="font-semibold">Any time</span></span><FiChevronDown className="ml-auto text-slate-400" /></div><button className="flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-4 font-bold text-white transition hover:bg-emerald-700"><FiSearch /> Find courts</button></form>
+    </section>
+    <section id="venues" className="bg-slate-100 py-20 text-slate-900"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Play your way</p><h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Popular courts near Bengaluru</h2></div><Link href="/venues" className="inline-flex items-center gap-2 font-bold text-emerald-700 hover:text-emerald-900">See all venues <FiArrowRight /></Link></div><div className="mt-8 flex gap-2 overflow-x-auto pb-2">{dates.map((item, index) => <button key={item.date} onClick={() => setSelectedDate(index)} className={`min-w-24 rounded-xl border px-4 py-3 text-left transition ${selectedDate === index ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white hover:border-emerald-500"}`}><span className="block text-[10px] font-bold tracking-wider opacity-70">{item.day}</span><span className="text-xl font-black">{item.date}</span><span className="ml-1 text-xs font-semibold">{item.month}</span></button>)}</div><div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{venues.map((venue) => <article key={venue.name} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"><div className={`relative h-48 bg-gradient-to-br ${venue.tone} p-4`}><div className="absolute inset-x-6 bottom-0 h-20 rounded-t-full border-x border-t border-white/35 bg-slate-950/10" /><div className="relative flex justify-between"><span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-900">Indoor</span><button aria-label={`Save ${venue.name}`} className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-slate-700">♡</button></div><div className="absolute bottom-4 left-4 rounded-lg bg-slate-950/80 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">Slots from 6:00 AM</div></div><div className="p-5"><div className="flex items-start justify-between gap-3"><div><h3 className="text-lg font-extrabold">{venue.name}</h3><p className="mt-1 flex items-center gap-1 text-sm text-slate-500"><FiMapPin className="text-emerald-600" /> {venue.area}</p></div><span className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-50 px-2 py-1 text-sm font-bold text-amber-700"><FiStar className="fill-current" /> {venue.rating}</span></div><div className="my-4 flex items-center justify-between border-y border-slate-100 py-3 text-sm text-slate-500"><span>{venue.courts}</span><span>{venue.distance}</span></div><div className="flex items-end justify-between"><div><span className="text-xs text-slate-500">from</span><p className="text-lg font-black">{venue.price}<span className="text-xs font-medium text-slate-500"> / hour</span></p></div><Link href="/venues" className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-950">View slots</Link></div><p className="mt-3 text-xs text-slate-400">{venue.reviews} verified player reviews</p></div></article>)}</div></div></section>
+    <section id="how-it-works" className="bg-white py-20 text-slate-900"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="max-w-xl"><p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Simple by design</p><h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">More playing. Less planning.</h2></div><div className="mt-10 grid gap-8 md:grid-cols-3">{[["01", "Find a court", "Search by neighbourhood, date and time. See what’s actually available."], ["02", "Choose your slot", "Compare courts, prices and facilities — then reserve the time that fits."], ["03", "Show up and play", "Pay securely and get an immediate confirmation in your bookings."]].map(([number, title, text]) => <div key={number} className="rounded-2xl bg-slate-50 p-6"><span className="text-4xl font-black text-lime-600">{number}</span><h3 className="mt-8 text-xl font-extrabold">{title}</h3><p className="mt-2 leading-7 text-slate-600">{text}</p></div>)}</div></div></section>
+    <footer className="bg-slate-950 py-10 text-slate-400"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-5 text-sm sm:flex-row lg:px-8"><span className="font-bold text-white">Badminton<span className="text-lime-300">Buddy</span></span><span>Book better. Play more.</span><span>© 2026 BadmintonBuddy</span></div></footer>
+  </main>;
 }

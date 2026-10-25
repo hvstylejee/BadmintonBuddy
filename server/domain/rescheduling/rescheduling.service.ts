@@ -163,7 +163,8 @@ export class ReschedulingService {
           userId,
           venueId: currentBooking.venueId,
           status: BookingStatus.RESCHEDULED,
-        });
+        },
+      });
       
       // For simplicity, check if we've exceeded limits
       // In production, would track reschedule count on the booking

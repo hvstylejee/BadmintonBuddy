@@ -4,10 +4,10 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
 import { prisma } from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@/generated/prisma/enums";
 import bcrypt from "bcrypt";
 
-export const authOptions = {
+const authOptions = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -81,5 +81,5 @@ export const authOptions = {
   },
 };
 
-export handler = NextAuth(authOptions);
-export { auth };
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
