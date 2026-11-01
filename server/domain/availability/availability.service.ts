@@ -28,5 +28,17 @@ export async function getAvailability(input: z.input<typeof inputSchema>) {
     const end = new Date(start.getTime() + duration * 60_000); const startLabel = start.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }); const endLabel = end.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" });
     slots.push({ start: startLabel, end: endLabel, status: start < new Date() ? "PAST" : "AVAILABLE", price: null });
   }
-  return { venueId, date, duration, courts: await Promise.all(venue.courts.map(async (court) => ({ courtId: court.id, courtName: court.name, slots: await Promise.all(slots.map(async (slot) => { const start = localDate(date, slot.start); const end = localDate(date, slot.end); const status: SlotStatus = slot.status === "PAST" ? "PAST" : blocks.some((block) => (!block.courtId || block.courtId === court.id) && overlap(start, end, block.startAt, block.endAt)) ? "BLOCKED" : bookings.some((booking) => booking.courtId === court.id && overlap(start, end, booking.startAt, booking.endAt)) ? "BOOKED" : holds.some((hold) => hold.courtId === court.id && overlap(start, end, hold.startAt, hold.endAt)) ? "HELD" : "AVAILABLE"; const price = status === "AVAILABLE" ? (await calculatePrice({ venueId, courtId: court.id, startAt: start.toISOString(), endAt: end.toISOString() }).catch(() => null)) : null; return { ...slot, status, price: price?.total ?? null }; })) })) };
+  const courts = await Promise.all(venue.courts.map(async (court) => {
+    const courtSlots = await Promise.all(slots.map(async (slot) => {
+      const start = localDate(date, slot.start); const end = localDate(date, slot.end);
+      const status: SlotStatus = slot.status === "PAST" ? "PAST" :
+        blocks.some((block) => (!block.courtId || block.courtId === court.id) && overlap(start, end, block.startAt, block.endAt)) ? "BLOCKED" :
+        bookings.some((booking) => booking.courtId === court.id && overlap(start, end, booking.startAt, booking.endAt)) ? "BOOKED" :
+        holds.some((hold) => hold.courtId === court.id && overlap(start, end, hold.startAt, hold.endAt)) ? "HELD" : "AVAILABLE";
+      const price = status === "AVAILABLE" ? await calculatePrice({ venueId, courtId: court.id, startAt: start.toISOString(), endAt: end.toISOString() }).catch(() => null) : null;
+      return { ...slot, status, price: price?.total ?? null };
+    }));
+    return { courtId: court.id, courtName: court.name, slots: courtSlots };
+  }));
+  return { venueId, date, duration, courts };
 }

@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiArrowLeft, FiCalendar, FiCheckCircle, FiClock, FiLock, FiMapPin } from "react-icons/fi";
 
-export default function CheckoutPage() {
+function CheckoutContents() {
   const searchParams = useSearchParams();
   const venue = searchParams.get("venue") || "Smash Point Arena";
   const court = searchParams.get("court") || "Court 2";
   const date = searchParams.get("date") || "Saturday, 25 October";
   const time = searchParams.get("time") || "7:30 PM – 8:30 PM";
   return <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:py-12"><div className="mx-auto max-w-5xl"><Link href="/venues" className="mb-7 inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-emerald-700"><FiArrowLeft /> Back to slots</Link><div className="grid gap-6 lg:grid-cols-[1fr_380px]"><section><div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8"><p className="text-sm font-bold uppercase tracking-wider text-emerald-700">Almost there</p><h1 className="mt-2 text-3xl font-black tracking-tight">Review your booking</h1><p className="mt-2 text-slate-600">Your court will be held for 5 minutes once you continue to payment.</p><div className="mt-8 rounded-xl border border-slate-200 p-5"><div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-extrabold">{venue}</h2><p className="mt-1 flex items-center gap-2 text-sm text-slate-500"><FiMapPin className="text-emerald-600" /> Indiranagar, Bengaluru</p></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">BADMINTON</span></div><div className="mt-5 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2"><p className="flex items-center gap-3 text-sm"><FiCalendar className="text-emerald-700" /><span><b className="block">{date}</b><span className="text-slate-500">{court}</span></span></p><p className="flex items-center gap-3 text-sm"><FiClock className="text-emerald-700" /><span><b className="block">{time}</b><span className="text-slate-500">1 hour</span></span></p></div></div><div className="mt-6 rounded-xl bg-slate-50 p-5"><h2 className="font-extrabold">Booking policy</h2><p className="mt-2 text-sm leading-6 text-slate-600">Free cancellation up to 12 hours before your slot. Your final total is calculated securely before payment.</p></div></div></section><aside className="h-fit rounded-2xl bg-slate-950 p-6 text-white shadow-xl"><h2 className="text-lg font-extrabold">Price summary</h2><div className="mt-5 space-y-3 border-b border-white/10 pb-5 text-sm text-slate-300"><p className="flex justify-between"><span>Court fee</span><span>₹350</span></p><p className="flex justify-between"><span>Convenience fee</span><span>₹20</span></p><p className="flex justify-between"><span>Taxes</span><span>₹0</span></p></div><div className="flex justify-between py-5 text-lg font-black"><span>Total</span><span>₹370</span></div><button className="w-full rounded-xl bg-lime-300 px-5 py-3.5 font-bold text-slate-950 transition hover:bg-lime-200">Continue to payment</button><p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-slate-400"><FiLock /> Secure checkout</p><p className="mt-5 flex items-center gap-2 text-xs text-lime-200"><FiCheckCircle /> Live availability checked before payment</p></aside></div></div></main>;
+}
+
+export default function CheckoutPage() {
+  return <Suspense fallback={<main className="min-h-screen bg-slate-100" />}><CheckoutContents /></Suspense>;
 }
